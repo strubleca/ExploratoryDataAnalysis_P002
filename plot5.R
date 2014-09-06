@@ -31,9 +31,12 @@ if (!file.exists(plotsDir)) {
 }
 setwd(plotsDir)
 
-# Identify motor vehicle sources. Including Motorcycles as well, since
-# the question is somewhat underspecified.
-vehicles <- grep("Vehicle", as.character(SCC$SCC.Level.Two), ignore.case=T)
+# Identify motor vehicle sources. This uses the definition in section
+# 4.6 of http://www.epa.gov/ttn/chief/net/2008neiv3/2008_neiv3_tsd_draft.pdf,
+# which defines "On-road – all Diesel and Gasoline vehicles".
+vehicles <- with(SCC,
+                 which(grepl("Mobile", SCC.Level.One, ignore.case=T) &
+                           Data.Category == "Onroad"))
 
 # Get the subset of codes and short names. Transform to characters to make
 # sure matching works correctly. Note, Short.Name was being explored to
@@ -45,38 +48,24 @@ SCCVehicles <- transform(SCCVehicles, Short.Name=as.character(Short.Name))
 # Get the total emissions for each year
 NEIVehicles <- subset(NEI, SCC %in% SCCVehicles$SCC & fips == "24510")
 
-# Aggregate emissions by year and source, creating an appropriate table.
-totalEmissionsByYearAndSource <- aggregate(Emissions ~ year + SCC,
+# Aggregate emissions by year creating an appropriate table.
+# There are too many different sources to consider individually in this
+# plot, so only the totals are shown.
+totalEmissionsByYear <- aggregate(Emissions ~ year,
                                          NEIVehicles,
                                          sum)
-totalEmissionsByYearAndSource <- merge(totalEmissionsByYearAndSource,
-                                       SCCVehicles,
-                                       by="SCC")
-
-# We'll add a set of total entries too for plotting
-totalEmissionsByYear <- aggregate(Emissions ~ year,
-                                  NEIVehicles,
-                                  sum)
-totalEmissionsByYear$SCC <- "Total"
-totalEmissionsByYear$Short.Name <- "Total"
-totalEmissionsByYear <- totalEmissionsByYear[,names(totalEmissionsByYearAndSource)]
-totalEmissionsByYearAndSource <- rbind(totalEmissionsByYearAndSource,
-                                       totalEmissionsByYear)
 
 # Now generate the requested plot using the ggplot2 package.
-png("plot5.png", width=960, height=960)
+png("plot5.png", width=480, height=480)
 
 # Create bars by year. Need to convert years to a factor.
-yearFactor <- factor(totalEmissionsByYearAndSource$year)
+yearFactor <- factor(totalEmissionsByYear$year)
 # Divide Emissions by 1000 for a more reasonable scale.
-g <- ggplot(totalEmissionsByYearAndSource, aes(yearFactor, Emissions))
-p <- g + geom_point() + 
-    facet_wrap(~ SCC, as.table=FALSE) +
+g <- ggplot(totalEmissionsByYear, aes(yearFactor, Emissions))
+p <- g + geom_bar(stat = "identity") + 
     labs(title="Fine Particulate Matter Emissions\nMotor Vehicle Sources in Baltimore City, Maryland") +
     labs(x="Year") +
-    labs(y=expression("Total " * PM[2.5] * " Emissions (tons)")) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1), 
-          text=element_text(size=18))
+    labs(y=expression("Total " * PM[2.5] * " Emissions (tons)"))
 print(p)
 
 dev.off()

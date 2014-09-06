@@ -76,7 +76,7 @@ relativeEmissionsByYearAndLocation <- do.call(rbind,
                                               relativeEmissionsByYearAndLocation)
 
 # Now generate the requested plot using the ggplot2 package.
-png("plot6.png", width=960, height=960)
+png("plot6.png", width=480, height=480)
 
 # Create bars by year. Need to convert years to a factor.
 yearFactor <- factor(totalEmissionsByYearAndLocation$year)
@@ -88,7 +88,7 @@ p <- g + geom_bar(stat = "identity") +
     labs(x="Year") +
     labs(y=expression("Total " * PM[2.5] * " Emissions (tons)")) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1), 
-          text=element_text(size=18))
+          text=element_text(size=12))
 
 # Relative changes over time.
 rg <- ggplot(relativeEmissionsByYearAndLocation, aes(yearFactor, Emissions))
@@ -98,13 +98,13 @@ rp <- rg + geom_bar(stat = "identity") +
     labs(x="Year") +
     labs(y="Emissions Relative to 1999 (%)") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1), 
-          text=element_text(size=18))
+          text=element_text(size=12))
 
 # Plot both on the same page. Idea from
 # https://github.com/hadley/ggplot2/wiki/Mixing-ggplot2-graphs-with-other-graphical-output
 grid.arrange(rp, p, ncol=1, 
              main = textGrob("Fine Particulate Matter Emissions from Motor Vehicle Sources",
-                          gp=gpar(fontsize=32)))
+                          gp=gpar(fontsize=16)))
 dev.off()
 
 # Change back to the original directory

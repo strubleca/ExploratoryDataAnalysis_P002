@@ -1,7 +1,7 @@
 #' plot3.R
 #' 
 #' @description
-#' Generate a plot answering the second question of project 2 for
+#' Generate a plot answering the third question of project 2 for
 #' Exploratory Data Analysis on Coursera. The question is
 #'
 #' Of the four types of sources indicated by the type (point, nonpoint, onroad, 

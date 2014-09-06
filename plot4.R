@@ -37,47 +37,30 @@ coal <- grep("Coal", as.character(SCC$SCC.Level.Three))
 coalCombustion <- intersect(combustion, coal)
 
 # Get the subset of codes and short names. Transform to characters to make
-# sure matching works correctly. Note, Short.Name was being explored to
-# plot per source type.
-SCCCoalCombustion <- SCC[coalCombustion,c("SCC", "Short.Name")]
-SCCCoalCombustion <- transform(SCCCoalCombustion, SCC=as.character(SCC))
-SCCCoalCombustion <- transform(SCCCoalCombustion, Short.Name=as.character(Short.Name))
+# sure matching works correctly. 
+SCCCoalCombustion <- as.character(SCC$SCC[coalCombustion])
 
 # Get the total emissions for each year
-NEICoal <- subset(NEI, SCC %in% SCCCoalCombustion$SCC)
+NEICoal <- subset(NEI, SCC %in% SCCCoalCombustion)
 
-# Aggregate emissions by year and source, creating an appropriate table.
-totalEmissionsByYearAndSource <- aggregate(Emissions ~ year + SCC,
-                                         NEICoal,
-                                         sum)
-totalEmissionsByYearAndSource <- merge(totalEmissionsByYearAndSource,
-                                       SCCCoalCombustion,
-                                       by="SCC")
-
-# We'll add a set of total entries too for plotting
+# Total emissions by year
 totalEmissionsByYear <- aggregate(Emissions ~ year,
                                   NEICoal,
                                   sum)
-totalEmissionsByYear$SCC <- "Total"
-totalEmissionsByYear$Short.Name <- "Total"
-totalEmissionsByYear <- totalEmissionsByYear[,names(totalEmissionsByYearAndSource)]
-totalEmissionsByYearAndSource <- rbind(totalEmissionsByYearAndSource,
-                                       totalEmissionsByYear)
 
 # Now generate the requested plot using the ggplot2 package.
-png("plot4.png", width=960, height=960)
+png("plot4.png", width=480, height=480)
 
 # Create bars by year. Need to convert years to a factor.
-yearFactor <- factor(totalEmissionsByYearAndSource$year)
+yearFactor <- factor(totalEmissionsByYear$year)
 # Divide Emissions by 1000 for a more reasonable scale.
-g <- ggplot(totalEmissionsByYearAndSource, aes(yearFactor, Emissions/1000))
-p <- g + geom_point() + 
-    facet_wrap(~ SCC, as.table=FALSE) +
+g <- ggplot(totalEmissionsByYear, aes(yearFactor, Emissions/1000))
+p <- g + geom_bar(stat="identity") + 
     labs(title="Fine Particulate Matter Emissions\nCoal Combustion Sources") +
     labs(x="Year") +
     labs(y=expression("Total " * PM[2.5] * " Emissions (thousands of tons)")) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1), 
-          text=element_text(size=18))
+          text=element_text(size=12))
 print(p)
 
 dev.off()

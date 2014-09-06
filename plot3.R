@@ -49,7 +49,8 @@ g <- ggplot(totalEmissionsByYearAndType, aes(year, Emissions))
 p <- g + geom_line(aes(color=type)) + 
     labs(title="Fine Particulate Matter Emissions\nBaltimore City, Maryland") +
     labs(x="Year") +
-    labs(y=expression("Total " * PM[2.5] * " Emissions (tons)"))
+    labs(y=expression("Total " * PM[2.5] * " Emissions (tons)")) +
+    scale_x_continuous(breaks=c(1999, 2002, 2005, 2008))
 print(p)
 dev.off()
 
